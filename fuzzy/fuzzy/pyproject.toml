@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "fuzzy"
+version = "0.1.0"
+description = ""
+authors = ["Miguel Marques Ferreira <miguel.ferreira@cear.ufpb.br>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^1.26.4"
+plotly = "^5.19.0"
+streamlit = "^1.31.1"
+pydantic = "^2.6.3"
+pytest = "^8.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
