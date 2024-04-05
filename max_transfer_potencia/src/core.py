@@ -1,17 +1,20 @@
-from numpy import random
-from max_transfer_potencia.src.binary_to_decimal import binary_to_decimal
+import numpy as np
+import random as rd
+from random import randint
+# from max_transfer_potencia.src.binary_to_decimal import binary_to_decimal
 
 
-def inital_pop(
-    L: int,
-    bits: int,
-    xmin: int | float = 0,
-    xmax: int | float = 1
+def initial_pop(
+    num_ind: int,
+    bits: int | None = None,
+    # xmin: int | float = 0,
+    # xmax: int | float = 1,
+    verbose: bool = False
 ) -> tuple:
     """This function generates the initial population of the genetic algorithm.
 
     Args:
-        L (int): The number of individuals in the population.
+        num_ind (int): The number of individuals in the population.
         bits (_type_): The number of bits used to represent each individual.
         xmin (_type_): The constraint of the minimum value of the individual.
         xmax (_type_): The constraint of the maximum value of the individual.
@@ -20,98 +23,84 @@ def inital_pop(
         tuple: The initial population and the binary representation of the initial population.
     """
     
-    temp = round(random.rand(L,bits),2)    
-    Po_Binario = int(temp) #.astype('int')
-    individuos = [
-        int(binary_to_decimal(Po_Binario[i,:]))
-        for i in range(0,L)
-    ]
-    Po = [
-        xmin + individuos[i]*(xmax-xmin)/(2**bits - 1)
-        for i in range(0,L)
-    ]
-
-    return Po, Po_Binario
-
-
-def fitness_avaliator(
-    Po: list,
-    bits: int,
-    L: int,
-    xmin: int | float = 0,
-    xmax: int | float = 1
-) -> list:
-    """This function evaluates the fitness of the population.
-
-    Args:
-        Po (list): The population.
-        bits (_type_): The number of bits used to represent each individual.
-        L (int): The number of individuals in the population.
-        xmin (_type_): The constraint of the minimum value of the individual.
-        xmax (_type_): The constraint of the maximum value of the individual.
-
-    Returns:
-        list: The fitness of each individual in the population.
-    """
-
-    fitness = [
-        Po[i] * (Po[i] - 1)
-        for i in range(0,L)
-    ]
-
-    return fitness
+    if not bits:
+        bits = num_ind
+        
+    pop_size = (num_ind, bits)
+    if verbose:
+        print('Tamanho da População = {}'.format(pop_size))
+    initial_population = np.random.randint(2, size = pop_size)
+    if verbose:
+        print('População Inicial: \n{}'.format(initial_population))
+    
+    return initial_population
 
 
 def selection(
-    Po: list,
-    Po_Binario: list,
     fitness: list,
-    bits: int,
-    L: int,
-    xmin: int | float = 0,
-    xmax: int | float = 1
+    num_parents: int,
+    population: np.array,
 ) -> tuple:
     """This function selects the parents for the crossover.
 
     Args:
-        Po (list): The population.
-        Po_Binario (list): The binary representation of the population.
         fitness (list): The fitness of each individual in the population.
-        bits (_type_): The number of bits used to represent each individual.
-        L (int): The number of individuals in the population.
-        xmin (_type_): The constraint of the minimum value of the individual.
-        xmax (_type_): The constraint of the maximum value of the individual.
-
+        num_parents (int): The number of parents to be selected.
+        population (np.array): The population.
+    
     Returns:
         tuple: The parents selected for the crossover.
     """
+    
+    fitness = list(fitness)
+    parents = np.empty((num_parents, population.shape[1]))
+    for i in range(num_parents):
+        max_fitness_idx = np.where(fitness == np.max(fitness))
+        parents[i,:] = population[max_fitness_idx[0][0], :]
+        fitness[max_fitness_idx[0][0]] = -999999
+        
+    return parents
 
-    # Normalization of the fitness
-    fitness = [
-        fitness[i] / sum(fitness)
-        for i in range(0,L)
-    ]
 
-    # Cumulative sum of the normalized fitness
-    cumsum = [sum(fitness[0:i+1]) for i in range(0,L)]
+def crossover(
+    parents,
+    num_offsprings,
+    crossover_rate
+) -> np.array:
+    
+    offsprings = np.empty((num_offsprings, parents.shape[1]))
+    crossover_point = int(parents.shape[1]/2)
+    i=0
+    while (i < num_offsprings):
+        x = rd.random()
+        parent1_index = 0
+        parent2_index = 1
+        if x < crossover_rate:
+            offsprings[i,0:crossover_point] = parents[parent1_index,0:crossover_point]
+            offsprings[i,crossover_point:] = parents[parent2_index,crossover_point:]
+            offsprings[i+1,0:crossover_point] = parents[parent2_index,0:crossover_point]
+            offsprings[i+1,crossover_point:] = parents[parent1_index,crossover_point:]
+        else:
+            offsprings[i] = parents[parent1_index]
+            offsprings[i+1] = parents[parent2_index]
+        i+=2 
+        
+    return offsprings
 
-    # Selection of the parents
-    parents = []
-    for i in range(0,L):
-        r = random.rand()
-        for j in range(0,L):
-            if r < cumsum[j]:
-                parents.append(j)
-                break
 
-    # Parents selected for the crossover
-    Po_Pais = [
-        Po[parents[i]]
-        for i in range(0,L)
-    ]
-    Po_Binario_Pais = [
-        Po_Binario[parents[i]]
-        for i in range(0,L)
-    ]
-
-    return Po_Pais, Po_Binario_Pais
+def mutation(
+    offsprings,
+    mutation_rate
+) -> np.array:
+    
+    mutants = np.empty((offsprings.shape))
+    for i in range(mutants.shape[0]):
+        random_value = rd.random()
+        mutants[i,:] = offsprings[i,:]
+        if random_value < mutation_rate:
+            int_random_value = randint(0,offsprings.shape[1]-1)    
+            if mutants[i,int_random_value] == 0 :
+                mutants[i,int_random_value] = 1
+            else :
+                mutants[i,int_random_value] = 0
+    return mutants   
