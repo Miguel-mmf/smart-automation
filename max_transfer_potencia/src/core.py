@@ -1,6 +1,8 @@
 import numpy as np
 import random as rd
 from random import randint
+
+from src import binary_to_decimal
 # from max_transfer_potencia.src.binary_to_decimal import binary_to_decimal
 
 
@@ -23,14 +25,27 @@ def initial_pop(
         tuple: The initial population and the binary representation of the initial population.
     """
     
+    def validate_initial_pop(pop):
+        
+        b_values = [''.join(map(str, pop[i,:])) for i in range(pop.shape[0])]
+        d_values = [binary_to_decimal(b) for b in b_values]
+        if 0 in d_values:
+            return [index for index, value in enumerate(d_values) if value == 0]
+        return []
+    
     if not bits:
         bits = num_ind
         
     pop_size = (num_ind, bits)
+    initial_population = np.random.randint(2, size = pop_size)
+    
+    invalid_pop = validate_initial_pop(initial_population)
+    while invalid_pop:
+        initial_population[invalid_pop] = np.random.randint(2, size = (len(invalid_pop), bits))
+        invalid_pop = validate_initial_pop(initial_population)
+    
     if verbose:
         print('Tamanho da População = {}'.format(pop_size))
-    initial_population = np.random.randint(2, size = pop_size)
-    if verbose:
         print('População Inicial: \n{}'.format(initial_population))
     
     return initial_population

@@ -1,16 +1,26 @@
 # %%
-from src import initial_pop, optimize
-from src import calc_fitness
-from src.plots import create_plot
-import matplotlib.pyplot as plt
+from src import (
+    initial_pop,
+    calc_fitness,
+    optimize,
+    create_plot
+)
+# %%
+Vth = 10
+Rl = 10
+Rth = 50
+print(f'Pmax = {Vth**2 / (4*Rth)}')
 # %%
 init_pop = initial_pop(
     num_ind=10,
-    bits=4,
+    bits=8,
     verbose=True
 )
 # %%
-calc_fitness(init_pop)
+calc_fitness(
+    init_pop,
+    verbose=True
+)
 # %%
 parameters, fitness_history = optimize(
     population=init_pop,
@@ -26,6 +36,7 @@ print(f'Os itens selecionados que resultam no maior valor são: {list(parameters
 # %%
 create_plot(
     fitness_history=fitness_history,
-    num_generations=10
+    num_generations=10,
+    save=True
 )
 # %%
