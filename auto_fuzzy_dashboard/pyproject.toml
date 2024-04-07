@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "auto-fuzzy-dashboard"
+version = "0.1.0"
+description = "This project will be used to create fuzzy rules based on data."
+authors = ["Miguel-mf <miguel.ferreira@cear.ufpb.br>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.32.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
