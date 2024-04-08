@@ -1,25 +1,32 @@
 import numpy as np
 from .binary_to_decimal import binary_to_decimal
+from .create_circuit import calc_gain_circuit
 
 
-def fitness_function(value):
-    return (2000 - value)**2
+def fitness_function(values):
+    
+    gain = calc_gain_circuit(
+        Vin=22,
+        Vs=0.1,
+        f=1e3,
+        R1=values[0],
+        R2=values[1],
+        RC=values[2],
+        RE=values[3],
+        C=values[4],
+        CE=values[5]
+    )
+    
+    return round((2000 - gain)**2, 2)
 
 
 def calc_fitness(
     pop: np.array,
-    Vth: int | float = 10,
-    Rl: int | float = 10,
-    Rth: int | float = 50,
     fitness_function: callable = fitness_function,
     verbose: bool = False
 ) -> list:
     
-    b_values = [''.join(map(str, pop[i,:])) for i in range(pop.shape[0])]
-    d_values = [binary_to_decimal(b) for b in b_values]
-    
-    if verbose:
-        print(f'Binary values: {b_values}')
-        print(f'Decimal values: {d_values}')
-    
-    return [fitness_function(d, Rth, Vth) for d in d_values]
+    return [
+        fitness_function(list(pop[i,:]))
+        for i in range(pop.shape[0])
+    ]

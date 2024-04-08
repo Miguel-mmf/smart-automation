@@ -2,15 +2,9 @@ import numpy as np
 import random as rd
 from random import randint
 
-from src import binary_to_decimal
-# from max_transfer_potencia.src.binary_to_decimal import binary_to_decimal
-
-
 def initial_pop(
     num_ind: int,
-    bits: int | None = None,
-    # xmin: int | float = 0,
-    # xmax: int | float = 1,
+    num_elements: int = 6,
     verbose: bool = False
 ) -> tuple:
     """This function generates the initial population of the genetic algorithm.
@@ -25,24 +19,32 @@ def initial_pop(
         tuple: The initial population and the binary representation of the initial population.
     """
     
-    def validate_initial_pop(pop):
+    # def validate_initial_pop(pop):
         
-        b_values = [''.join(map(str, pop[i,:])) for i in range(pop.shape[0])]
-        d_values = [binary_to_decimal(b) for b in b_values]
-        if 0 in d_values:
-            return [index for index, value in enumerate(d_values) if value == 0]
-        return []
+    #     b_values = [''.join(map(str, pop[i,:])) for i in range(pop.shape[0])]
+    #     d_values = [binary_to_decimal(b) for b in b_values]
+    #     if 0 in d_values:
+    #         return [index for index, value in enumerate(d_values) if value == 0]
+    #     return []
     
-    if not bits:
-        bits = num_ind
-        
-    pop_size = (num_ind, bits)
-    initial_population = np.random.randint(2, size = pop_size)
+    if not num_elements:
+        # Sequencia
+            # R1=values[0],
+            # R2=values[1],
+            # RC=values[2],
+            # RE=values[3],
+            # C=values[4],
+            # CE=values[5]
+        num_elements = 6
     
-    invalid_pop = validate_initial_pop(initial_population)
-    while invalid_pop:
-        initial_population[invalid_pop] = np.random.randint(2, size = (len(invalid_pop), bits))
-        invalid_pop = validate_initial_pop(initial_population)
+    
+    pop_size = (num_ind, num_elements)
+    initial_population = np.random.randint(100, size = pop_size)
+    
+    # invalid_pop = validate_initial_pop(initial_population)
+    # while invalid_pop:
+    #     initial_population[invalid_pop] = np.random.randint(2, size = (len(invalid_pop), bits))
+    #     invalid_pop = validate_initial_pop(initial_population)
     
     if verbose:
         print('Tamanho da População = {}'.format(pop_size))

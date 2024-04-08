@@ -25,7 +25,7 @@ def optimize(
         tqdm.write(f'Generation {i+1} - Fitness:', end=' ')
         fitness = fitness_func(population)
         fitness_history.append(fitness)
-        print([round(f,2) for f in fitness])
+        tqdm.write(f'{fitness}\n')
         
         parents = selection(fitness, num_parents, population)
         
@@ -40,8 +40,8 @@ def optimize(
     fitness_last_gen = fitness_func(population)
     
     if verbose:
-        print('Fitness da última geração: {}\n'.format([round(f,2) for f in fitness_last_gen]))
-        print('Última geração: \n{}\n'.format(population)) 
+        tqdm.write('Fitness da última geração: {}\n'.format([round(f,2) for f in fitness_last_gen]))
+        tqdm.write('Última geração: \n{}\n'.format(population)) 
         # print('Última geração: \n{}\n'.format(binary_to_decimal(population)))
     
     if max:

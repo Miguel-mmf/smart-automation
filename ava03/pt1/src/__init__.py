@@ -3,3 +3,4 @@ from .core import initial_pop, selection, crossover, mutation
 from .fitness import calc_fitness
 from .optimizer import optimize
 from .plots import create_plot
+from .create_circuit import calc_gain_circuit
