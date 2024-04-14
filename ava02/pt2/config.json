@@ -1,0 +1,18 @@
+{
+    "delay": 0.5,
+    "columns": [
+        "time",
+        "set_point_freq",
+        "set_point_angle",
+        "frequency",
+        "pt_k_1",
+        "pt_k_2",
+        "frequency_error",
+        "angle",
+        "angle_error",
+        "prediction",
+        "model"
+    ],
+    "keras_model_path": "./models/modelo_RNA.h5",
+    "catboost_model_path": "./models/cat_model_pt2.cbm"
+}
