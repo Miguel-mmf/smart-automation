@@ -1,4 +1,6 @@
 {
+    "main_page_title": "Dashboard - Controle de pressão de um sistema de água com Fuzzy e RNA",
+    "models_page_title": "Modelos",
     "delay": 0.5,
     "columns": [
         "time",
@@ -14,5 +16,7 @@
         "model"
     ],
     "keras_model_path": "./models/modelo_RNA.h5",
-    "catboost_model_path": "./models/cat_model_pt2.cbm"
+    "catboost_model_path": "./models/cat_model_pt2.cbm",
+    "keras_model_path_to_pages": "./models/modelo_RNA.h5",
+    "catboost_model_path_to_pages": "./models/cat_model_pt2.cbm"
 }

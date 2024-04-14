@@ -17,7 +17,7 @@ config = json.load(open("config.json", "r"))
 st.set_page_config(
     page_title="Real-Time Control Panel",
     page_icon="✅",
-    # initial_sidebar_state="collapsed",
+    initial_sidebar_state="collapsed",
     layout="wide",
 )
 
@@ -66,7 +66,7 @@ def get_data() -> pd.DataFrame:
 df = get_data()
 
 # dashboard title
-st.title("Real-Time / Live Data Science Dashboard")
+st.title(config['main_page_title'])
 
 with st.expander("Opcões de Simulação"):
     # top-level filters
@@ -175,7 +175,7 @@ if start_button:
         df.at[now,"time"] = now
         df.at[now,'set_point_freq'] = freq_filter
         df.at[now,'set_point_angle'] = angle_filter
-        df.at[now, 'pt_k_1'] = last_kpi_values['frequency']
+        df.at[now, 'pt_k_1'] = last_kpi_values['prediction']
         df.at[now, 'pt_k_2'] = last_kpi_values['pt_k_1']
         df.at[now, 'frequency'] = last_kpi_values['set_point_freq']*np.random.uniform(0.98, 1.08)
         df.at[now, 'prediction'] = predicted_mca
