@@ -1,6 +1,21 @@
 import numpy as np
 import random as rd
-from random import randint
+from random import randint, random
+
+
+def random_value_with_constraint(
+    index: int,
+):
+    val = random()
+    if index == 0:
+        return val*100 if val != 0 else 45
+    elif index in [1, 2]:
+        return val*10 if val != 0 else 1
+    elif index == 3:
+        return val*3 if val != 0 else 1
+    else:
+        return val*20 if val != 0 else 1
+
 
 def initial_pop(
     num_ind: int,
@@ -18,15 +33,7 @@ def initial_pop(
     Returns:
         tuple: The initial population and the binary representation of the initial population.
     """
-    
-    # def validate_initial_pop(pop):
-        
-    #     b_values = [''.join(map(str, pop[i,:])) for i in range(pop.shape[0])]
-    #     d_values = [binary_to_decimal(b) for b in b_values]
-    #     if 0 in d_values:
-    #         return [index for index, value in enumerate(d_values) if value == 0]
-    #     return []
-    
+
     if not num_elements:
         # Sequencia
             # R1=values[0],
@@ -39,12 +46,17 @@ def initial_pop(
     
     
     pop_size = (num_ind, num_elements)
-    initial_population = np.random.randint(100, size = pop_size)
-    
-    # invalid_pop = validate_initial_pop(initial_population)
-    # while invalid_pop:
-    #     initial_population[invalid_pop] = np.random.randint(2, size = (len(invalid_pop), bits))
-    #     invalid_pop = validate_initial_pop(initial_population)
+    # initial_population = np.random.randint(1, 1000, size = pop_size)
+    initial_population = np.zeros(shape=pop_size, dtype=float)
+    for row in range(num_ind):
+        initial_population[row, :] = [
+            random_value_with_constraint(0),
+            random_value_with_constraint(1),
+            random_value_with_constraint(2),
+            random_value_with_constraint(3),
+            random_value_with_constraint(4),
+            random_value_with_constraint(5)
+        ]
     
     if verbose:
         print('Tamanho da População = {}'.format(pop_size))
@@ -57,6 +69,7 @@ def selection(
     fitness: list,
     num_parents: int,
     population: np.array,
+    method: str = 'min'
 ) -> tuple:
     """This function selects the parents for the crossover.
 
@@ -69,13 +82,21 @@ def selection(
         tuple: The parents selected for the crossover.
     """
     
-    fitness = list(fitness)
+    # fitness = list(fitness)
     parents = np.empty((num_parents, population.shape[1]))
+    
     for i in range(num_parents):
-        max_fitness_idx = np.where(fitness == np.max(fitness))
-        parents[i,:] = population[max_fitness_idx[0][0], :]
-        fitness[max_fitness_idx[0][0]] = -999999
+        if method == 'max':
+            fitness_idx = np.where(fitness == np.max(fitness))
+        elif method == 'min':
+            fitness_idx = np.where(fitness == np.min(fitness))
+        else:
+            raise ValueError('Método inválido. Escolha entre "max" ou "min"')
         
+        # fitness_idx = np.where(fitness == np.min(fitness))
+        parents[i,:] = population[fitness_idx[0][0], :]
+        fitness[fitness_idx[0][0]] = -999999 if method == 'max' else 999999
+    
     return parents
 
 
@@ -84,6 +105,19 @@ def crossover(
     num_offsprings,
     crossover_rate
 ) -> np.array:
+    """_summary_
+
+    Args:
+        parents (_type_): _description_
+        num_offsprings (_type_): _description_
+        crossover_rate (_type_): _description_
+    
+    Docs:
+        Para criar um par de novos indivíduos, dois pais geralmente são escolhidos a partir do atual geração, e partes de seus cromossomos são trocados (cruzados) para criar dois novos cromossomos representando a prole. Essa operação é chamada de cruzamento, ou recombinação.
+
+    Returns:
+        np.array: _description_
+    """    
     
     offsprings = np.empty((num_offsprings, parents.shape[1]))
     crossover_point = int(parents.shape[1]/2)
@@ -115,9 +149,20 @@ def mutation(
         random_value = rd.random()
         mutants[i,:] = offsprings[i,:]
         if random_value < mutation_rate:
-            int_random_value = randint(0,offsprings.shape[1]-1)    
-            if mutants[i,int_random_value] == 0 :
-                mutants[i,int_random_value] = 1
-            else :
-                mutants[i,int_random_value] = 0
-    return mutants   
+            int_random_value = randint(0,offsprings.shape[1]-1)
+            random_sum_diff = rd.random()
+            if random_sum_diff < 0.5:
+                mutants[i,int_random_value] = random_value_with_constraint(int_random_value)
+            else:
+                mutants[i,int_random_value] = random_value_with_constraint(int_random_value)
+    
+    return mutants
+
+
+if __name__ == '__main__':
+    
+    initial_pop(
+        num_ind=10,
+        num_elements=6,
+        verbose=True
+    )

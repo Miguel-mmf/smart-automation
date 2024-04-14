@@ -1,12 +1,5 @@
-# import PySpice.Logging.Logging as Logging
-# logger = Logging.setup_logging()
 from PySpice.Spice.Netlist import Circuit
-# from PySpice.Doc.ExampleTools import find_libraries
-# from PySpice.Spice.Library import SpiceLibrary
-# from PySpice.Probe.Plot import plot
 from PySpice.Unit import *
-
-# import matplotlib.pyplot as plt
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -21,7 +14,8 @@ def calc_gain_circuit(
     RC: float | int,
     RE: float | int,
     C: float | int,
-    CE: float | int = 20
+    CE: float | int = 20,
+    type: str = 'DC'
 ):
     """This function creates a circuit with the given parameters.
     
@@ -41,8 +35,8 @@ def calc_gain_circuit(
         CE (float | int, optional): The capacitance of the emitter capacitor. Bypass capacitor. Defaults to 20.
     """
     
-    def calc_gain(analysis):
-        """This function calculates the gain of the circuit.
+    def calc_AC_gain(analysis):
+        """This function calculates the AC gain of the circuit.
 
         Args:
             analysis (_type_): The analysis of the circuit.
@@ -50,14 +44,26 @@ def calc_gain_circuit(
         Returns:
             float: The gain of the circuit.
         """
-        max_saida = float(max(analysis['5']))
-        max_entrada = float(max(analysis['1']))
+        entrada = [float(val) for val in analysis['1']]
+        saida = [float(val) for val in analysis['5']]
 
-        return round(max_saida/max_entrada, 2)
+        return round((max(saida) - min(saida))/(max(entrada) - min(entrada)), 4)
+    
+    
+    def calc_DC_gain(analysis, Vs=Vs):
+        """This function calculates the DC gain of the circuit.
+
+        Args:
+            analysis (_type_): The analysis of the circuit.
+
+        Returns:
+            float: The gain of the circuit.
+        """
+        return round(float(analysis.nodes['5'])/float(Vs/1000), 0)
     
     Vin = Vin@u_V
-    Vs = Vs@u_V
-    f = f@u_Hz
+    Vs = Vs@u_mV
+    f = f@u_kHz
     R1 = R1@u_kΩ
     R2 = R2@u_kΩ
     RC = RC@u_kΩ
@@ -80,10 +86,16 @@ def calc_gain_circuit(
 
     circuit.model('generic', 'npn')
     
-    simulator = circuit.simulator(temperature=25, nominal_temperature=25)    
-    analysis = simulator.transient(
-        step_time=0.5@u_us,
-        end_time=0.5@u_ms
-    )
+    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+    if type == 'DC':
+        analysis = simulator.operating_point()
+        return calc_DC_gain(analysis)
     
-    return calc_gain(analysis)
+    elif type == 'AC':
+        analysis = simulator.transient(
+            step_time=0.5@u_us,
+            end_time=1@u_ms
+        )
+        return calc_AC_gain(analysis)
+    else:
+        raise ValueError('Invalid type. Choose between "DC" and "AC".')

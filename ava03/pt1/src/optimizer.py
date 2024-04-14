@@ -1,9 +1,26 @@
+import json
+import humps
 import numpy as np
 from tqdm import tqdm
-
+from time import time
 from .binary_to_decimal import binary_to_decimal
 from .core import crossover, mutation, selection
 from .fitness import calc_fitness
+
+def mount_results(parameters):
+    
+    result = dict()
+    result['Vs'] = 1
+    result['Vin'] = 22
+    result['f'] = 1
+    result['R1'] = round(parameters[0][0], 2)
+    result['R2'] = round(parameters[0][1], 2)
+    result['RC'] = round(parameters[0][2], 2)
+    result['RE'] = round(parameters[0][3], 2)
+    result['C'] = round(parameters[0][4], 2)
+    result['CE'] = round(parameters[0][5], 2)
+    
+    return result
 
 
 def optimize(
@@ -14,20 +31,32 @@ def optimize(
     crossover_rate,
     mutation_rate,
     fitness_func: callable = calc_fitness,
-    max: bool = True,
-    min: bool = False,
+    method: str = 'min',
+    patience: int | bool = 200,
     verbose: bool = False
 ) -> tuple:
     
-    parameters, fitness_history = [], []
+    if num_offsprings + num_parents != population.shape[0]:
+        raise ValueError('The number of offsprings add and the number of parents must be equal to the population size.')
+    
+    if not patience:
+        patience = num_generations
+    
+    start = time()
+    parameters = list()
+    fitness_history = list()
+    result = dict()
+    
     print('Starting genetic algorithm...')
     for i in tqdm(range(num_generations), desc='Progress: '):
-        tqdm.write(f'Generation {i+1} - Fitness:', end=' ')
+        if verbose:
+            tqdm.write(f'Generation {i+1} - Fitness:', end=' ')
         fitness = fitness_func(population)
         fitness_history.append(fitness)
-        tqdm.write(f'{fitness}\n')
+        if verbose:
+            tqdm.write(f'{fitness}')
         
-        parents = selection(fitness, num_parents, population)
+        parents = selection(fitness, num_parents, population, method)
         
         offsprings = crossover(parents, num_offsprings, crossover_rate)
         
@@ -35,26 +64,45 @@ def optimize(
         
         population[0:parents.shape[0], :] = parents
         population[parents.shape[0]:, :] = mutants
+        
+        if i > patience:
+            if np.all(fitness_history[-patience] == fitness_history[-1]):
+                tqdm.write(f'Early stopping at generation {i+1}')
+                break
 
     
     fitness_last_gen = fitness_func(population)
     
     if verbose:
-        tqdm.write('Fitness da última geração: {}\n'.format([round(f,2) for f in fitness_last_gen]))
-        tqdm.write('Última geração: \n{}\n'.format(population)) 
-        # print('Última geração: \n{}\n'.format(binary_to_decimal(population)))
+        tqdm.write('\n\nLast generation fitness: {}\n'.format([round(f,2) for f in fitness_last_gen]))
+        tqdm.write('Last generation: \n{}\n'.format(population)) 
     
-    if max:
+    if method == 'max':
         max_or_min_fitness = np.where(fitness_last_gen == np.max(fitness_last_gen))
-    elif min:
+    elif method == 'min':
         max_or_min_fitness = np.where(fitness_last_gen == np.min(fitness_last_gen))
-    elif not max and not min:
-        raise ValueError('You must set max=True or min=True')
-    elif max and min:
-        raise ValueError('You must set only one of max=True or min=True')
     else:
-        raise ValueError('You must set max=True or min=True')
+        raise ValueError('Método inválido. Escolha entre "max" ou "min"')
     
     parameters.append(population[max_or_min_fitness[0][0],:])
     
+    result['circuit'] = mount_results(parameters)
+    result['fitness_last_generation'] = [round(f,2) for f in fitness_last_gen]
+    result['parameters'] = parameters[0].tolist()
+    result['method'] = method
+    result['num_generations'] = num_generations
+    result['num_parents'] = num_parents
+    result['num_offsprings'] = num_offsprings
+    result['crossover_rate'] = crossover_rate
+    result['mutation_rate'] = mutation_rate
+    result['patience'] = patience
+    result['population'] = population.tolist()
+    result['fitness_history'] = fitness_history
+    
+    result = humps.camelize(result)
+    
+    with open('result.json', 'w') as f:
+        json.dump(result, f, indent=4)
+    
+    print(f'Time elapsed: {round(time() - start, 2)}s')
     return parameters, fitness_history
