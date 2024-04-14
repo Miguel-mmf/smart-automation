@@ -15,7 +15,8 @@ def calc_gain_circuit(
     RE: float | int,
     C: float | int,
     CE: float | int = 20,
-    type: str = 'DC'
+    type: str = 'DC',
+    return_Is_current: bool = False
 ):
     """This function creates a circuit with the given parameters.
     
@@ -60,6 +61,22 @@ def calc_gain_circuit(
             float: The gain of the circuit.
         """
         return round(float(analysis.nodes['5'])/float(Vs/1000), 0)
+
+    def calc_Is(analysis, R1=R1, RC=RC):
+        """This function calculates the Is current of the circuit.
+
+        Args:
+            analysis (_type_): The analysis of the circuit.
+
+        Returns:
+            float: The Is current of the circuit.
+        """
+        
+        Is = (float(analysis.nodes['3']) - float(analysis.nodes['4'])) / float(R1)
+        Is += (float(analysis.nodes['3']) - float(analysis.nodes['4'])) / float(RC)
+        
+        return Is
+    
     
     Vin = Vin@u_V
     Vs = Vs@u_mV
@@ -87,15 +104,30 @@ def calc_gain_circuit(
     circuit.model('generic', 'npn')
     
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-    if type == 'DC':
-        analysis = simulator.operating_point()
-        return calc_DC_gain(analysis)
-    
-    elif type == 'AC':
-        analysis = simulator.transient(
-            step_time=0.5@u_us,
-            end_time=1@u_ms
-        )
-        return calc_AC_gain(analysis)
+    if not return_Is_current:
+        if type == 'DC':
+            analysis = simulator.operating_point()
+            return calc_DC_gain(analysis)
+        
+        elif type == 'AC':
+            analysis = simulator.transient(
+                step_time=0.5@u_us,
+                end_time=1@u_ms
+            )
+            return calc_AC_gain(analysis)
+        else:
+            raise ValueError('Invalid type. Choose between "DC" and "AC".')
     else:
-        raise ValueError('Invalid type. Choose between "DC" and "AC".')
+        
+        
+        
+        if type == 'DC':
+            analysis = simulator.operating_point()
+            return (calc_DC_gain(analysis), calc_Is(analysis))
+        
+        elif type == 'AC':
+            analysis = simulator.transient(
+                step_time=0.5@u_us,
+                end_time=1@u_ms
+            )
+            return (calc_AC_gain(analysis), calc_Is(analysis))
