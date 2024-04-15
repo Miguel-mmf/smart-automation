@@ -89,7 +89,7 @@ with st.expander("Opcões de Simulação"):
     with left_column_1:
         pressure_set_point = st.selectbox(
             "Selecione o Set Point para Pressão: ",
-            [i for i in range(1, 20)],
+            [i for i in range(1,15)],
             index=5
         )
         angle_filter = st.selectbox(
@@ -219,7 +219,14 @@ if start_button:
         error = max(min(error, 15), -15)
         delta_error = max(min(delta_error, 5), -5)
         df.at[now, 'delta_frequency'] = get_results(error, delta_error, FS)
-        df.at[now, 'frequency'] = calc_new_frequency(last_kpi_values['frequency'], df.at[now, 'delta_frequency'])
+        new_frequency = calc_new_frequency(last_kpi_values['frequency'], df.at[now, 'delta_frequency'
+        # A frequencia deve ser limitada
+        df.at[now, 'frequency'] =(
+            new_frequency
+            if new_frequency < 60 and new_frequency > 30
+            else 30 if new_frequency < 30
+            else 60 if new_frequency > 60
+        )
 
         # creating KPIs
         last_row = df.iloc[-1]
@@ -273,6 +280,7 @@ if start_button:
             fig_col1, fig_col2 = st.columns(2)
             with fig_col1:
                 st.markdown("### Pressão vs Tempo")
+                # fixar uma janela de tempo para apresentacao dos dados
                 fig = px.line(
                     data_frame=df,
                     x="time",
