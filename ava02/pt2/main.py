@@ -185,6 +185,10 @@ if start_button:
         _, y_scaler = scale_data(df[['pressure_predicted']], scaler_type='minmax')
         
         x_scaled = scale_data(df[['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']], x_scaler)
+        # Conferir
+        if model_type == "MLP":
+            nor = np.array([[2581.45792141, 2543.96720659,  770.72376701,  769.92793663]])#, 771.6440832 ]])
+            x_scaled = df.div(nor)
         a = np.asarray(x_scaled.iloc[-1], dtype=np.float32).reshape(1, -1) if model_type == "MLP" else np.asarray(df.iloc[-1][['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']], dtype=np.float32).reshape(1, -1)
         
         if model_type == "MLP":
