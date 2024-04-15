@@ -138,15 +138,15 @@ def create_metrics_container(df):
         )
         
         kpi3.metric(
-            label='Delta Frequência 📡',
+            label='Frequência 📡',
             # value=df["frequency_error"].values[0],
-            value=df["delta_frequency"].values[0],
+            value=df["frequency"].values[0],
             delta=0
         )
         
         kpi4.metric(
-            label='Ângulo desejado 📐',
-            value=df["angle_set_point"].values[0],
+            label='Delta Frequência 📡',
+            value=df["delta_frequency"].values[0],
             delta=0
         )
         
@@ -185,17 +185,21 @@ if start_button:
         _, y_scaler = scale_data(df[['pressure_predicted']], scaler_type='minmax')
         
         x_scaled = scale_data(df[['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']], x_scaler)
+        # Conferir
+        if model_type == "MLP":
+            nor = np.array([[2581.45792141, 2543.96720659,  770.72376701,  769.92793663]])#, 771.6440832 ]])
+            x_scaled = df[['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']].div(nor)
         a = np.asarray(x_scaled.iloc[-1], dtype=np.float32).reshape(1, -1) if model_type == "MLP" else np.asarray(df.iloc[-1][['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']], dtype=np.float32).reshape(1, -1)
         
         if model_type == "MLP":
-            # pressure_predicted = loaded_model.predict(a)[0][0]
-            pressure_predicted = y_scaler['pressure_predicted'].inverse_transform(loaded_model.predict(a))[0][0]
+            pressure_predicted = loaded_model.predict(a)[0][0] * 771.6440832
+            #pressure_predicted = y_scaler['pressure_predicted'].inverse_transform(loaded_model.predict(a))[0][0]
         else:
             pressure_predicted = loaded_model.predict(a)[0]
         
         now = datetime.now()
         error = calc_error(pressure_set_point, pressure_predicted)
-        delta_error = calc_delta_error(error, last_kpi_values['delta_error'])
+        delta_error = calc_delta_error(error, last_kpi_values['error'])
         
         df.at[now,"time"] = now
         df.at[now,'pressure_set_point'] = pressure_set_point
@@ -212,6 +216,8 @@ if start_button:
         # print(df)
         
         # fuzzy logic
+        error = max(min(error, 15), -15)
+        delta_error = max(min(delta_error, 5), -5)
         df.at[now, 'delta_frequency'] = get_results(error, delta_error, FS)
         df.at[now, 'frequency'] = calc_new_frequency(last_kpi_values['frequency'], df.at[now, 'delta_frequency'])
 
@@ -234,20 +240,20 @@ if start_button:
                 
                 kpi2.metric(
                     label='Pressão 📡',
+                    value=round(last_row["pressure_predicted"], 2),
+                    delta=round(last_row["pressure_predicted"] - last_kpi_values["pressure_predicted"], 2)
+                )
+                
+                kpi3.metric(
+                    label='Frequência 📡',
                     value=round(last_row["frequency"], 2),
                     delta=round(last_row["frequency"] - last_kpi_values["frequency"], 2)
                 )
                 
-                kpi3.metric(
+                kpi4.metric(
                     label='Delta Frequência 📡',
                     value=round(last_row["delta_frequency"], 2),
                     delta=round(last_row["delta_frequency"] - last_kpi_values["delta_frequency"], 2)
-                )
-                
-                kpi4.metric(
-                    label='Ângulo desejado 📐',
-                    value=round(last_row["angle_set_point"], 2),
-                    delta=round(last_row["angle_set_point"] - last_kpi_values["angle_set_point"], 2)
                 )
                 
                 kpi5.metric(
@@ -336,7 +342,7 @@ if start_button:
 
             st.markdown("### Dados em tempo real")
             st.dataframe(df, height=500, use_container_width=True, hide_index=True)
-            time.sleep(config['delay'] - (time.time() - start_time))
+            time.sleep(config['delay'] - (time.time() - start_time) if (config['delay'] - (time.time() - start_time))>0 else config['delay'])
         
         last_kpi_values = last_row
         
