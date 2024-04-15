@@ -188,7 +188,7 @@ if start_button:
         # Conferir
         if model_type == "MLP":
             nor = np.array([[2581.45792141, 2543.96720659,  770.72376701,  769.92793663]])#, 771.6440832 ]])
-            x_scaled = df.div(nor)
+            x_scaled = df[['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']].div(nor)
         a = np.asarray(x_scaled.iloc[-1], dtype=np.float32).reshape(1, -1) if model_type == "MLP" else np.asarray(df.iloc[-1][['frequency', 'angle_set_point', 'pt_k_1', 'pt_k_2']], dtype=np.float32).reshape(1, -1)
         
         if model_type == "MLP":
@@ -340,7 +340,7 @@ if start_button:
 
             st.markdown("### Dados em tempo real")
             st.dataframe(df, height=500, use_container_width=True, hide_index=True)
-            time.sleep(config['delay'] - (time.time() - start_time))
+            time.sleep(config['delay'] - (time.time() - start_time) if (config['delay'] - (time.time() - start_time))>0 else config['delay'])
         
         last_kpi_values = last_row
         
