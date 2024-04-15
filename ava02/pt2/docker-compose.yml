@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  dashboard:
+    container_name: dashboard
+    ports:
+      - 8501:8501
+    volumes:
+      - .
+    build: .
+    restart: always
