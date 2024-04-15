@@ -5,3 +5,5 @@ numpy
 streamlit
 matplotlib
 plotly
+simpful
+scikit-learn
