@@ -89,8 +89,8 @@ with st.expander("Opcões de Simulação"):
     with left_column_1:
         pressure_set_point = st.selectbox(
             "Selecione o Set Point para Pressão: ",
-            [i for i in range(1, 60)],
-            index=9
+            [i for i in range(1, 20)],
+            index=5
         )
         angle_filter = st.selectbox(
             "Selecione o ângulo: ",
@@ -104,7 +104,7 @@ with st.expander("Opcões de Simulação"):
         model_type = st.selectbox(
             "Selecione o modelo: ",
             ["CatBoost", "MLP"],
-            index=0
+            index=1
         )
         
 loaded_model = (
