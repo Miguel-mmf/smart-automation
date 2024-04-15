@@ -8,9 +8,9 @@ from PySpice.Unit import *
 
 # %%
 save_fig = True
-
+problema = 'p2'
 # %%
-values = json.load(open('result.json'))['circuit']
+values = json.load(open(f'result_{problema}.json'))['circuit']
 
 # %%
 Vin=values['vin']@u_V
@@ -24,7 +24,7 @@ C=values['C']@u_uF
 CE=values['CE']@u_uF
 
 # %%
-circuit = Circuit('Exemplo 1')
+circuit = Circuit('Exemplo Validacao')
 
 circuit.V('input',3, circuit.gnd, Vin)
 circuit.AcLine('VS',1,circuit.gnd, rms_voltage=Vs, frequency=f)
@@ -96,11 +96,11 @@ axs[1].grid()
 plt.tight_layout()
 if save_fig:
     plt.savefig(
-        './images/tensoes_12_resultado_AG.png',
+        f'./images/tensoes_12_resultado_AG_{problema}.png',
         dpi=300,
     )
     plt.savefig(
-        './images/tensoes_12_resultado_AG.pdf',
+        f'./images/tensoes_12_resultado_AG_{problema}.pdf',
         dpi=300,
     )
 else:
@@ -122,11 +122,11 @@ axs[1].grid()
 plt.tight_layout()
 if save_fig:
     plt.savefig(
-        './images/tensoes_45_resultado_AG.png',
+        f'./images/tensoes_45_resultado_AG_{problema}.png',
         dpi=300,
     )
     plt.savefig(
-        './images/tensoes_45_resultado_AG.pdf',
+        f'./images/tensoes_45_resultado_AG_{problema}.pdf',
         dpi=300,
     )
 else:
@@ -148,11 +148,11 @@ axs[1].grid()
 plt.tight_layout()
 if save_fig:
     plt.savefig(
-        './images/tensoes_15_resultado_AG.png',
+        f'./images/tensoes_15_resultado_AG_{problema}.png',
         dpi=300,
     )
     plt.savefig(
-        './images/tensoes_15_resultado_AG.pdf',
+        f'./images/tensoes_15_resultado_AG_{problema}.pdf',
         dpi=300,
     )
 else:

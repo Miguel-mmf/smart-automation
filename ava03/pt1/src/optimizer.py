@@ -33,7 +33,8 @@ def optimize(
     fitness_func: callable = calc_fitness,
     method: str = 'min',
     patience: int | bool = 200,
-    verbose: bool = False
+    verbose: bool = False,
+    filename: str = 'result.json'
 ) -> tuple:
     
     if num_offsprings + num_parents != population.shape[0]:
@@ -101,7 +102,7 @@ def optimize(
     
     result = humps.camelize(result)
     
-    with open('result.json', 'w') as f:
+    with open(filename, 'w') as f:
         json.dump(result, f, indent=4)
     
     print(f'Time elapsed: {round(time() - start, 2)}s')
