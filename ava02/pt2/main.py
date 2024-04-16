@@ -88,19 +88,19 @@ with st.expander("Opcões de Simulação"):
     left_column_1, rigth_column_1 = st.columns(2, gap='large')
     with left_column_1:
         pressure_set_point = st.selectbox(
-            "Selecione o Set Point para Pressão: ",
-            [i for i in range(1,15)],
-            index=5
+            "Selecione o valor desejado de pressão: ",
+            [i for i in range(4,18)],
+            index=2
         )
         angle_filter = st.selectbox(
-            "Selecione o ângulo: ",
-            [i for i in range(0, 70)],
-            index=30
+            "Selecione o ângulo da válvula: ",
+            [i for i in range(0, 70, 3)],
+            index=10
         )
 
     with rigth_column_1:
-        start_button = st.button("Start Simulation", key="start", type="primary", use_container_width=True)
-        end_button = st.button("End Simulation", key="end", type="secondary", use_container_width=True)
+        start_button = st.button("Iniciar a simulação", key="start", type="primary", use_container_width=True)
+        end_button = st.button("Encerrar a simulação", key="end", type="secondary", use_container_width=True)
         model_type = st.selectbox(
             "Selecione o modelo: ",
             ["CatBoost", "MLP"],
@@ -209,7 +209,7 @@ if start_button:
         df.at[now, 'pressure_predicted'] = pressure_predicted
         df.at[now, 'error'] = error
         df.at[now, 'delta_error'] = delta_error
-        df.at[now, 'angle'] = angle_filter
+        df.at[now, 'angle'] = angle_filter*np.random.uniform(0.96, 1.04)
         # df.at[now, 'frequency_error'] = df.at[now, 'frequency'] - df.at[now, 'pressure_set_point']*np.random.uniform(0.9, 1.1)
         df.at[now, 'angle_error'] = df.at[now, 'angle'] - df.at[now, 'angle_set_point']*np.random.uniform(0.99, 1.01)
         df.at[now, 'model'] = model_type
@@ -219,13 +219,14 @@ if start_button:
         error = max(min(error, 15), -15)
         delta_error = max(min(delta_error, 5), -5)
         df.at[now, 'delta_frequency'] = get_results(error, delta_error, FS)
-        new_frequency = calc_new_frequency(last_kpi_values['frequency'], df.at[now, 'delta_frequency'
+        new_frequency = calc_new_frequency(last_kpi_values['frequency'], df.at[now, 'delta_frequency'])
         # A frequencia deve ser limitada
-        df.at[now, 'frequency'] =(
+        df.at[now, 'frequency'] = (
             new_frequency
-            if new_frequency < 60 and new_frequency > 30
-            else 30 if new_frequency < 30
-            else 60 if new_frequency > 60
+            if ((new_frequency < 60) and (new_frequency > 30))
+            else 30 if (new_frequency < 30)
+            else 60 if (new_frequency > 60)
+            else 30
         )
 
         # creating KPIs
@@ -289,6 +290,8 @@ if start_button:
                     labels={"pressure_set_point": "Desejada", "pressure_predicted": "Predita"},
                 )
                 fig.update_layout(
+                    height=400,
+                    width=580,
                     xaxis_title="Tempo",
                     yaxis_title="Pressão M.C.A",
                     legend=dict(
@@ -300,32 +303,8 @@ if start_button:
                     ),
                 )
                 st.write(fig)
-                
-                # st.markdown("### Frequencia vs Tempo")
-                # fig = px.line(
-                #     data_frame=df,
-                #     x="time",
-                #     y=["frequency"]
-                # )
-                # fig.update_layout(
-                #     xaxis_title="Tempo",
-                #     yaxis_title="Frequência (Hz)",
-                #     legend=dict(
-                #         orientation="h",
-                #         yanchor="bottom",
-                #         y=1.02,
-                #         xanchor="right",
-                #         x=1
-                #     ),
-                # )
-                # st.write(fig)
             
             with fig_col2:
-                # st.markdown("### Angulo vs Tempo")
-                # fig = px.line(
-                #     data_frame=df, x="time", y=["angle_set_point", "angle"]
-                # )
-                # st.write(fig)
                 st.markdown("### Erros vs Tempo")
                 fig = px.line(
                     data_frame=df,
@@ -335,6 +314,8 @@ if start_button:
                     labels={"delta_error": "Delta Erro", "error": "Erro", "delta_frequency": "Delta Frequência"}
                 )
                 fig.update_layout(
+                    height=400,
+                    width=580,
                     xaxis_title="Tempo",
                     yaxis_title="Pressão M.C.A",
                     legend=dict(
@@ -345,8 +326,43 @@ if start_button:
                         xanchor="right",
                         x=1
                     ),
+                    xaxis=dict(
+                        showline=True,
+                        showgrid=True,
+                        showticklabels=True,
+                        linecolor='rgb(204, 204, 204)',
+                        linewidth=2,
+                        ticks='outside',
+                        tickfont=dict(
+                            family='Arial',
+                            size=12,
+                            color='rgb(82, 82, 82)',
+                        ),
+                    ),
                 )
                 st.write(fig)
+            
+            
+            st.markdown("### Frequencia e Angulo vs Tempo")
+            fig = px.line(
+                data_frame=df,
+                x="time",
+                y=["frequency", "angle_set_point", "angle"],
+            )
+            fig.update_layout(
+                height=400,
+                width=1200,
+                xaxis_title="Tempo",
+                yaxis_title="Frequência (Hz) | Ângulo (°)",
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                ),
+            )
+            st.write(fig)
 
             st.markdown("### Dados em tempo real")
             st.dataframe(df, height=500, use_container_width=True, hide_index=True)
@@ -372,4 +388,3 @@ if start_button:
             
             # RETIRAR ISSO DEPOIS
             os.remove(f"data_{date.today()}.csv")
-# os.remove(f"data_{date.today()}.csv")

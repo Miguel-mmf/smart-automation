@@ -66,6 +66,7 @@ def get_data() -> pd.DataFrame:
 df = get_data()
 
 # dashboard title
+st.warning("⚠️ This page was deactivated due to a bug in the code. Please, check the code and try again.")
 st.title(config['models_page_title'])
 
 with st.expander("Opcões de Simulação"):
