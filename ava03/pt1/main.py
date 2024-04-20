@@ -6,6 +6,7 @@ from src import (
     create_plot
 )
 # %%
+problem = 'p1'
 num_ind = 15
 num_elements = 6
 num_generations = 1000
@@ -46,7 +47,8 @@ create_plot(
     fitness_history=fitness_history,
     # num_generations=num_generations if not patience else len(fitness_history),
     method=method,
-    save=True
+    save=True,
+    problem=problem
 )
 # %%
 import os

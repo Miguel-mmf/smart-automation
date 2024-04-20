@@ -8,6 +8,7 @@ from src import (
     calc_gain_circuit
 )
 # %%
+problem = 'p2'
 num_ind = 15
 num_elements = 6
 num_generations = 1000
@@ -73,7 +74,8 @@ create_plot(
     fitness_history=fitness_history,
     # num_generations=num_generations if not patience else len(fitness_history),
     method=method,
-    save=True
+    save=True,
+    problem=problem
 )
 # %%
 import os
