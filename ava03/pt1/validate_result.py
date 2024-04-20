@@ -82,8 +82,8 @@ print(f'Ganho AC do amplificador: {round((max(saida) - min(saida))/(max(entrada)
 
 # %%
 figure, axs = plt.subplots(2,1, figsize=(12, 6), sharex=True)
-axs[0].plot(aux.time, aux['1'], label='Tensão no ponto 1', linewidth=3)
-axs[1].plot(aux.time, aux['2'], label='Tensão no ponto 2', linewidth=3)
+axs[0].plot(aux.time, aux['1'], label='Tensão no ponto 1', linewidth=3, color='blue')
+axs[1].plot(aux.time, aux['2'], label='Tensão no ponto 2', linewidth=3, color='red')
 
 axs[0].set_ylabel('Tensão (V)')
 axs[1].set_ylabel('Tensão (V)')
@@ -107,9 +107,9 @@ else:
     plt.show()
 
 # %%
-figure, axs = plt.subplots(2,1, figsize=(12, 4), sharex=True)
-axs[0].plot(aux.time, aux['4'], label='Tensão no ponto 4', linewidth=3)
-axs[1].plot(aux.time, aux['5'], label='Tensão no ponto 5', linewidth=3)
+figure, axs = plt.subplots(2,1, figsize=(12, 6), sharex=True)
+axs[0].plot(aux.time, aux['4'], label='Tensão no ponto 4', linewidth=3, color='blue')
+axs[1].plot(aux.time, aux['5'], label='Tensão no ponto 5', linewidth=3, color='red')
 
 axs[0].set_ylabel('Tensão (V)')
 axs[1].set_ylabel('Tensão (V)')
@@ -133,7 +133,7 @@ else:
     plt.show()
 
 # %%
-figure, axs = plt.subplots(2,1, figsize=(12, 4), sharex=True)
+figure, axs = plt.subplots(2,1, figsize=(12, 6), sharex=True)
 axs[0].plot(aux.time, aux['5'], label='Tensão no ponto 5', linewidth=3, color='blue')
 axs[1].plot(aux.time, aux['1'], label='Tensão no ponto 1', linewidth=3, color='red')
 
