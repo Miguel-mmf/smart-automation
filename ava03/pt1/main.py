@@ -38,7 +38,8 @@ parameters, fitness_history = optimize(
     mutation_rate=mutation_rate,
     method=method,
     patience=patience,
-    verbose=verbose
+    verbose=verbose,
+    filename=f'result_{problem}.json'
 )
 # %%
 print(f'Os itens selecionados que resultam no maior valor são: {list(parameters[0])}\n')
@@ -54,3 +55,4 @@ create_plot(
 import os
 
 os.system('python validate_result.py')
+os.system('python ./src/plots.py')

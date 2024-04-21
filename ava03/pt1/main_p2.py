@@ -43,8 +43,8 @@ def fitness_function_p2(values):
         type='DC',
         return_Is_current=True
     )
-    
-    return round((2000 - gain)**2 + 0.1*Is, 2)
+
+    return round((2000 - gain)**2 + 1*Is, 2)
 
 # %%
 calc_fitness(
@@ -70,15 +70,14 @@ parameters, fitness_history = optimize(
 # %%
 print(f'Os itens selecionados que resultam no maior valor são: {list(parameters[0])}\n')
 # %%
-create_plot(
-    fitness_history=fitness_history,
-    # num_generations=num_generations if not patience else len(fitness_history),
-    method=method,
-    save=True,
-    problem=problem
-)
+# create_plot(
+#     fitness_history=fitness_history,
+#     # num_generations=num_generations if not patience else len(fitness_history),
+#     method=method,
+#     save=True,
+#     problem=problem
+# )
 # %%
-import os
+# import os
 
-os.system('python validate_result.py')
-# %%
+# os.system('python validate_result.py')

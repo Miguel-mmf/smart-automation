@@ -22,6 +22,14 @@ def mount_results(parameters):
     
     return result
 
+def get_best_individual(population, fitness, method):
+    if method == 'max':
+        fitness_idx = np.where(fitness == np.max(fitness))
+    elif method == 'min':
+        fitness_idx = np.where(fitness == np.min(fitness))
+
+    return population[fitness_idx[0][0], :]
+
 
 def optimize(
     population, 
@@ -46,6 +54,8 @@ def optimize(
     start = time()
     parameters = list()
     fitness_history = list()
+    best_individual_history = list()
+    population_history = list()
     result = dict()
     
     print('Starting genetic algorithm...')
@@ -54,6 +64,15 @@ def optimize(
             tqdm.write(f'Generation {i+1} - Fitness:', end=' ')
         fitness = fitness_func(population)
         fitness_history.append(fitness)
+        best_individual_history.append(
+            get_best_individual(
+                population,
+                fitness,
+                method
+            ).tolist()
+        )
+        population_history.append(population.tolist())
+        
         if verbose:
             tqdm.write(f'{fitness}')
         
@@ -99,6 +118,8 @@ def optimize(
     result['patience'] = patience
     result['population'] = population.tolist()
     result['fitness_history'] = fitness_history
+    result['population_history'] = population_history
+    result['best_individual_history'] = best_individual_history
     
     result = humps.camelize(result)
     
