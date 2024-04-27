@@ -70,13 +70,13 @@ parameters, fitness_history = optimize(
 # %%
 print(f'Os itens selecionados que resultam no maior valor são: {list(parameters[0])}\n')
 # %%
-# create_plot(
-#     fitness_history=fitness_history,
-#     # num_generations=num_generations if not patience else len(fitness_history),
-#     method=method,
-#     save=True,
-#     problem=problem
-# )
+create_plot(
+    fitness_history=fitness_history,
+    # num_generations=num_generations if not patience else len(fitness_history),
+    method=method,
+    save=True,
+    problem=problem
+)
 # %%
 # import os
 
