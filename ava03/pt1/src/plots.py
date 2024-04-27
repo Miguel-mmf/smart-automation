@@ -175,13 +175,13 @@ def create_plot(
     plt.grid()
     plt.title('Fitness através das gerações')
     plt.xlabel('Gerações')
-    if method == 'min':
-        plt.ylabel(f'Fitness {method.capitalize()} - {min(fitness_history_min):6.2f}')
-    elif method == 'max':
+    if method == 'max':
         plt.ylabel(f'Fitness {method.capitalize()} - {max(fitness_history_max):6.2f}')
+    elif method == 'min':
+        plt.ylabel(f'Fitness {method.capitalize()} - {min(fitness_history_min):6.2f}')
     else:
         raise ValueError('Método inválido. Escolha entre "max" ou "min"')
-    
+
     if save:
         plt.tight_layout()
         plt.savefig(f'fitness_history_{problem}.png')
