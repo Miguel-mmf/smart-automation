@@ -8,8 +8,4 @@ def binary_to_decimal(binary):
         int: The decimal number.
     """
     size = len(binary)
-    return sum(
-        [
-            int(binary[size-i-1])*(2**i) for i in range(size)
-        ]
-    )
+    return sum(int(binary[size-i-1])*(2**i) for i in range(size))
