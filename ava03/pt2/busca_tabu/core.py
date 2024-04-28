@@ -105,7 +105,7 @@ def check_patience(curr_generation, patience, fitness_history):
         bool: True if early stopping criteria are met, False otherwise.
     """
 
-    if curr_generation > patience and np.all(fitness_history[-patience] == fitness_history[-1]):
+    if curr_generation > patience and np.all(np.max(fitness_history[-patience]) == np.max(fitness_history[-1])):
         tqdm.write(f'Early stopping at generation {curr_generation+1}')
         return True
     return False
@@ -209,7 +209,7 @@ def tabu_search(
             tqdm.write(f'Lista Tabu: {tabu_list}')
 
         neighbors = []
-        for pos in tqdm(range(10), desc='Vizinhos:', leave=False):
+        for pos in tqdm(range(10), desc=f'Vizinhos ({iteration}):', leave=True):
             neighbor = best_solution.copy()
             neighbor[pos] = 1 - neighbor[pos] if pos not in tabu_list else neighbor[pos]
             neighbors.append(
@@ -278,9 +278,9 @@ if __name__ == '__main__':
         weight=weight,
         value=value,
         threshold=35,
-        tabu_list_size=2,
+        tabu_list_size=3,
         method='max',
-        patience=20
+        patience=5
     )
     
     print(f'Melhor Indivíduo: {best_solution}')
