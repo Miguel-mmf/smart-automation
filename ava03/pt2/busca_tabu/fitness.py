@@ -1,6 +1,6 @@
 import numpy as np
 
-def calc_fitness(weight, value, population, threshold):
+def calc_fitness(weight, value, population, threshold) -> tuple:
     """
     Calculates the fitness of individuals in a population based on weight, value, and a threshold.
 
@@ -16,4 +16,4 @@ def calc_fitness(weight, value, population, threshold):
 
     total_weight = np.dot(population, weight)
     total_value = np.dot(population, value)
-    return np.where(total_weight <= threshold, total_value, 0)
+    return np.where(total_weight <= threshold, total_value, 0), total_weight, total_value

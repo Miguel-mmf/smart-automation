@@ -142,10 +142,10 @@ if __name__ == '__main__':
     # for problem in tqdm(['p1', 'p2'], desc='Problemas'):
         
     try:
-        results = json.load(open('tabu_search_results_2024-04-27.json'))
+        results = json.load(open('tabu_search_results_2024-04-28.json'))
     except FileNotFoundError as e:
         print(e)
-        results = json.load(open('./ava03/pt2/tabu_search_results_2024-04-27.json'))
+        results = json.load(open('./ava03/pt2/tabu_search_results_2024-04-28.json'))
     # tabu_search_results_2024-04-27.json
     values = results['solutionFitnessHistory']
     # fig, ax = plt.subplots(1, 1, figsize=(10, 5))

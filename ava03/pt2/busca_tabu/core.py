@@ -149,7 +149,11 @@ def mount_results(
     best_solution,
     best_solution_fitness,
     solution_history,
+    solution_weight_history,
+    solution_value_history,
+    best_solution_history,
     solution_fitness_history,
+    best_solution_fitness_history,
     tabu_list_history,
     method,
     patience
@@ -160,6 +164,22 @@ def mount_results(
         'best_iteration': best_iteration,
         'best_solution': best_solution.tolist(),
         'best_solution_fitness': float(best_solution_fitness),
+        'best_solution_history': [
+            best_solution.tolist()
+            for best_solution in best_solution_history
+        ],
+        'solution_weight_history': [
+            weight.tolist()
+            for weight in solution_weight_history
+        ],
+        'solution_value_history': [
+            value.tolist()
+            for value in solution_value_history
+        ],
+        'best_solution_fitness_history': [
+            fitness.tolist()
+            for fitness in best_solution_fitness_history
+        ],
         'solution_history': [
             [s.tolist() for s in solution]
             for solution in solution_history
@@ -176,6 +196,156 @@ def mount_results(
 
     return result
 
+def show_verbose_info(iteration, best_solution, best_solution_fitness, tabu_list, verbose=False):
+    if verbose:
+        print(f'Iteração {iteration}', end=' ')
+        print(f'Melhor Indivíduo: {best_solution}', end=' ')
+        print(f'Fitness do Melhor Indivíduo: {best_solution_fitness}', end=' ')
+        print(f'Lista Tabu: {tabu_list}')
+
+
+def init_historical_data(population, weight, value, threshold):
+    (
+        first_fitness,
+        total_weight_neighbors,
+        total_value_neighbors
+    ) = calc_fitness(weight, value, population, threshold)
+    best_solution = population[np.argmax(first_fitness)]
+    best_solution_fitness = np.max(first_fitness)
+    tabu_list = []
+    solution_history = [population]
+    solution_weight_history = [total_weight_neighbors]
+    solution_value_history = [total_value_neighbors]
+    best_solution_history = [best_solution]
+    solution_fitness_history = [first_fitness]
+    best_solution_fitness_history = [best_solution_fitness]
+    tabu_list_history = []
+    
+    return (
+        best_solution,
+        best_solution_fitness,
+        tabu_list,
+        solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
+        solution_fitness_history,
+        best_solution_fitness_history,
+        tabu_list_history
+    )
+
+
+def update_best_solution(
+    best_neighbor_fitness,
+    best_solution,
+    best_neighbor,
+    best_solution_fitness,
+    best_iteration,
+    iteration
+) -> None:
+    if best_neighbor_fitness > best_solution_fitness:
+        best_solution = best_neighbor
+        best_solution_fitness = best_neighbor_fitness
+        best_iteration = iteration
+
+
+def main_optimize(
+    num_iterations: int,
+    weight: np.ndarray,
+    value: np.ndarray,
+    threshold: float,
+    tabu_list_size: int,
+    fitness_func: callable,
+    method: str,
+    patience: int | bool,
+    solution_history: list,
+    solution_weight_history: list,
+    solution_value_history: list,
+    best_solution_history: list,
+    solution_fitness_history: list,
+    best_solution_fitness_history: list,
+    tabu_list_history: list,
+    best_solution: np.ndarray,
+    best_solution_fitness: float,
+    tabu_list: list,
+    verbose: bool = False
+):
+    
+    best_iteration = 0
+    print('Inicializando Busca Tabu...')
+    for iteration, _ in enumerate(tqdm(range(num_iterations), desc='Progresso: '), start=1):
+        
+        show_verbose_info(
+            iteration=iteration,
+            best_solution=best_solution,
+            best_solution_fitness=best_solution_fitness,
+            tabu_list=tabu_list,
+            verbose=verbose
+        )
+
+        neighbors = []
+        for pos in tqdm(range(10), desc=f'Vizinhos ({iteration}):', leave=True):
+            neighbor = best_solution.copy()
+            neighbor[pos] = 1 - neighbor[pos] if pos not in tabu_list else neighbor[pos]
+            neighbors.append(
+                np.array(neighbor, dtype=int)
+                # if binary_to_decimal(neighbor) not in tabu_list
+                if pos not in tabu_list
+                else np.ones(10, dtype=int)
+            )
+
+        (
+            fitness_neighbors,
+            total_weight_neighbors,
+            total_value_neighbors
+        ) = fitness_func(weight, value, np.array(neighbors), threshold)
+
+        solution_history.append(neighbors)
+        solution_fitness_history.append(fitness_neighbors)
+        solution_weight_history.append(total_weight_neighbors)
+        solution_value_history.append(total_value_neighbors)
+        
+        best_neighbor, best_neighbor_fitness = get_best_neihbor_solution(
+            neighbors,
+            fitness_neighbors,
+            method
+        )
+
+        # tabu_list.append(binary_to_decimal(best_neighbor))
+        tabu_list.append(int(np.argmax(fitness_neighbors)))
+        if len(tabu_list) > tabu_list_size:
+            tabu_list.pop(0)
+        tabu_list_history.append(tabu_list.copy())
+
+        update_best_solution(
+            best_neighbor_fitness,
+            best_neighbor,
+            best_solution,
+            best_solution_fitness,
+            best_iteration,
+            iteration
+        )
+            
+        best_solution_fitness_history.append(best_solution_fitness)
+        best_solution_history.append(best_solution)
+        
+        if check_patience(iteration, patience, best_solution_fitness_history):
+            break
+    
+    return (
+        best_solution,
+        best_solution_fitness,
+        best_iteration,
+        tabu_list,
+        solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
+        solution_fitness_history,
+        best_solution_fitness_history,
+        tabu_list_history
+    )
+
 @elapsed_time
 def tabu_search(
     population: np.ndarray,
@@ -191,58 +361,59 @@ def tabu_search(
     filename: str = f'tabu_search_results_{date.today()}.json'
 ) -> tuple:
 
-    fitness = fitness_func(weight, value, population, threshold)
-    best_solution = population[np.argmax(fitness)]
-    best_solution_fitness = np.max(fitness)
-    best_iteration = 0
-    tabu_list = []
-    solution_history = []
-    solution_fitness_history = []
-    tabu_list_history = []
+    (
+        best_solution,
+        best_solution_fitness,
+        tabu_list,
+        solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
+        solution_fitness_history,
+        best_solution_fitness_history,
+        tabu_list_history
+    ) = init_historical_data(population, weight, value, threshold)
+    show_verbose_info(
+        iteration=0,
+        best_solution=best_solution,
+        best_solution_fitness=best_solution_fitness,
+        tabu_list=tabu_list,
+        verbose=verbose
+    )
 
-    print('Inicializando Busca Tabu...')
-    for iteration, _ in enumerate(tqdm(range(num_iterations), desc='Progresso: '), start=1):
-        if verbose:
-            tqdm.write(f'Iteração {iteration}', end=' ')
-            tqdm.write(f'Melhor Indivíduo: {best_solution}', end=' ')
-            tqdm.write(f'Fitness do Melhor Indivíduo: {best_solution_fitness}', end=' ')
-            tqdm.write(f'Lista Tabu: {tabu_list}')
-
-        neighbors = []
-        for pos in tqdm(range(10), desc=f'Vizinhos ({iteration}):', leave=True):
-            neighbor = best_solution.copy()
-            neighbor[pos] = 1 - neighbor[pos] if pos not in tabu_list else neighbor[pos]
-            neighbors.append(
-                np.array(neighbor, dtype=int)
-                # if binary_to_decimal(neighbor) not in tabu_list
-                if pos not in tabu_list
-                else np.ones(10, dtype=int)
-            )
-
-        fitness_neighbors = fitness_func(weight, value, np.array(neighbors), threshold)
-
-        solution_history.append(neighbors)
-        solution_fitness_history.append(fitness_neighbors)
-
-        best_neighbor, best_neighbor_fitness = get_best_neihbor_solution(
-            neighbors,
-            fitness_neighbors,
-            method
-        )
-
-        # tabu_list.append(binary_to_decimal(best_neighbor))
-        tabu_list.append(int(np.argmax(fitness_neighbors)))
-        if len(tabu_list) > tabu_list_size:
-            tabu_list.pop(0)
-        tabu_list_history.append(tabu_list.copy())
-
-        if best_neighbor_fitness > best_solution_fitness:
-            best_solution = best_neighbor
-            best_solution_fitness = best_neighbor_fitness
-            best_iteration = iteration
-    
-        if check_patience(iteration, patience, solution_fitness_history):
-            break
+    (
+        best_solution,
+        best_solution_fitness,
+        best_iteration,
+        tabu_list,
+        solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
+        solution_fitness_history,
+        best_solution_fitness_history,
+        tabu_list_history
+    ) = main_optimize(
+        num_iterations,
+        weight,
+        value,
+        threshold,
+        tabu_list_size,
+        fitness_func,
+        method,
+        patience,
+        solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
+        solution_fitness_history,
+        best_solution_fitness_history,
+        tabu_list_history,
+        best_solution,
+        best_solution_fitness,
+        tabu_list,
+        verbose
+    )
     
     result = mount_results(
         population[0],
@@ -250,7 +421,11 @@ def tabu_search(
         best_solution,
         best_solution_fitness,
         solution_history,
+        solution_weight_history,
+        solution_value_history,
+        best_solution_history,
         solution_fitness_history,
+        best_solution_fitness_history,
         tabu_list_history,
         method,
         patience
@@ -258,30 +433,72 @@ def tabu_search(
     
     save_results(filename, result)
 
-    return best_solution, best_solution_fitness, solution_history, solution_fitness_history
+    return best_solution, best_solution_fitness #, solution_history, solution_fitness_history
 
 
 if __name__ == '__main__':
+    import os
+    start = time()
     weight = np.array([10,8,2,4,15,5,3,1,12,9])
     value = np.array([1200,200,300,1000,1500,800,2000,40,500,3000])
     
-    population = initial_solutions(weight.shape[0], True)
+    best_trial_solution = None
+    best_trial_solution_fitness = 0
+    best_trial_solution_fitness_history = []
+    filename = ''
+    patience = 40
     
-    (
-        best_solution,
-        best_solution_fitness,
-        solution_history,
-        solution_fitness_history
-    ) = tabu_search(
-        population=population,
-        num_iterations=100,
-        weight=weight,
-        value=value,
-        threshold=35,
-        tabu_list_size=3,
-        method='max',
-        patience=5
-    )
+    for trial in tqdm(range(100), desc='Trials: '):
+        
+        f = f'./ava03/pt2/busca_tabu/tabu_search_trials/{trial}_tabu_search_results_{date.today()}.json'
+        population = initial_solutions(weight.shape[0], False)
+        
+        (
+            best_solution,
+            best_solution_fitness,
+            # solution_history,
+            # solution_fitness_history
+        ) = tabu_search(
+            population=population,
+            num_iterations=1000,
+            weight=weight,
+            value=value,
+            threshold=35,
+            tabu_list_size=2,
+            method='max',
+            patience=30,
+            filename=f,
+            verbose=False
+        )
+        
+        # print(f'Melhor Indivíduo: {best_solution}')
+        # print(f'Fitness do Melhor Indivíduo: {best_solution_fitness}')
+        
+        if best_solution_fitness > best_trial_solution_fitness:
+            best_trial_solution = best_solution
+            best_trial_solution_fitness = best_solution_fitness
+            filename = f
+        best_trial_solution_fitness_history.append(best_solution_fitness)
+        
+        if (
+            len(best_trial_solution_fitness_history) > patience
+            and best_trial_solution_fitness_history[-patience] == best_trial_solution_fitness_history[-1]
+        ):
+            break\
     
-    print(f'Melhor Indivíduo: {best_solution}')
-    print(f'Fitness do Melhor Indivíduo: {best_solution_fitness}')
+    for trial in tqdm(range(100), desc='Removendo Arquivos de Resultados: '):
+        try:
+            f = f'./ava03/pt2/busca_tabu/tabu_search_trials/{trial}_tabu_search_results_{date.today()}.json'
+            if (
+                os.path.exists(f)
+                and filename != f
+            ):
+                os.remove(f)
+        except FileNotFoundError as e:
+            print(e)
+    
+    print(f'Melhor Solução: {best_trial_solution}')
+    print(f'Fitness da Melhor Solução: {best_trial_solution_fitness}')
+    print(f'Arquivo de Resultados: {filename}')
+    print(f'Tempo Total: {round(time() - start, 2)}s')
+    print('Fim do Programa')
