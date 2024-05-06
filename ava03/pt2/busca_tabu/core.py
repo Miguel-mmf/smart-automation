@@ -433,7 +433,7 @@ def tabu_search(
     
     save_results(filename, result)
 
-    return best_solution, best_solution_fitness #, solution_history, solution_fitness_history
+    return best_solution, best_solution_fitness, solution_history, solution_fitness_history
 
 
 if __name__ == '__main__':
@@ -456,8 +456,8 @@ if __name__ == '__main__':
         (
             best_solution,
             best_solution_fitness,
-            # solution_history,
-            # solution_fitness_history
+            solution_history,
+            solution_fitness_history
         ) = tabu_search(
             population=population,
             num_iterations=1000,
