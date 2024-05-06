@@ -21,8 +21,8 @@ from fitness import calc_fitness
 item_number = np.arange(1,11)
 weight = np.array([10,8,2,4,15,5,3,1,12,9]) # weight = np.random.randint(1, 15, size = 10)
 value = np.array([1200,200,300,1000,1500,800,2000,40,500,3000]) # value = np.random.randint(10,3000, size = 10)
-# data = pd.DataFrame({'Item No.': item_number, 'Peso': weight, 'Valor': value})
-# data.to_csv('mochila.csv', index=False)
+
+# %%
 print('Lista de itens da casa com seus respectivos valores e pesos:')
 print('Item No.   Peso   Valor')
 for i in range(item_number.shape[0]):
